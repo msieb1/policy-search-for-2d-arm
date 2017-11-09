@@ -3,8 +3,17 @@ import numpy as np
 from Pend2dBallThrowDMP import *
 
 class EM():
+	"""
+	Implements policy search using Expectation Maximization to update parameters of upper-level policy
+	"""
 
     def __init__(self):
+    	"""
+        numDim: dimension of state space
+		numSamples: number of episodic rollouts per iteration
+		maxIter: number of parameter updates
+		numTrials: number of independent learning trials
+    	"""
         self.env = Pend2dBallThrowDMP()
         self.lambd = 7
         self.numDim = 10
@@ -12,7 +21,6 @@ class EM():
         self.maxIter = 100
         self.numTrials = 10
         self.saveFigures = True
-        # For example, let initialize the distribution...
 
 
 
@@ -104,20 +112,21 @@ class EM():
             print(R_mean[-1])
             print("\n")
 
+            #### plotting for different lambdas ####
             if cnt == 0:
                 plt.errorbar(np.arange(1, maxIter + 1), R_mean,  1.96 * R_std, marker='^',color='blue', label='lambda = 7')
             elif cnt == 1:
                 plt.errorbar(np.arange(1, maxIter + 1), R_mean,  1.96 * R_std, marker='^',color='green', label='lambda = 3')
             elif cnt == 2:
                 plt.errorbar(np.arange(1, maxIter + 1), R_mean,  1.96 * R_std, marker='^', color='red',label='lambda = 25')
-
             plt.yscale("symlog")
             if self.saveFigures:
                 plt.savefig('1lambda3725.pdf')
             # Save animation
             env.animate_fig ( np.random.multivariate_normal(Mu_w,Sigma_w) )
-            plt.savefig('EM-Ex3.pdf')
             cnt += 1
+            ########################################
+
         plt.legend(loc='best')
 
 if __name__ == '__main__':

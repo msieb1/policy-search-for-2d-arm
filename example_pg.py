@@ -1,6 +1,14 @@
 from matplotlib import pyplot as plt
 import numpy as np
 from Pend2dBallThrowDMP import *
+from enum import Enum
+>>> class Color(Enum):
+...     RED = 1
+...     GREEN = 2
+...     BLUE = 3
+...
+
+
 
 class PG():
     """
@@ -8,6 +16,12 @@ class PG():
     """
 
     def __init__(self):
+    	"""
+        numDim: dimension of state space
+		numSamples: number of episodic rollouts per iteration
+		maxIter: number of parameter updates
+		numTrials: number of independent learning trials
+    	"""
         self.env = Pend2dBallThrowDMP()
         self.lambd = 7
         self.numDim = 10
@@ -20,7 +34,8 @@ class PG():
         self.gamma = 0.9
         self.saveFigures = True
         self.fullGrad = False
-        # For example, let initialize the distribution...
+        self.gradMethod = 'NAG' #alternatively 'GD'
+
 
     # Do your learning
     def calculate_R_and_theta(self, Mu_w, Sigma_w):
@@ -81,7 +96,6 @@ class PG():
         env = self.env
         gamma = self.gamma
         alpha_list = [0.4, 0.1]
-        cnt = 0
 
         # run trials for different values of alpha
         for alph in alpha_list:
@@ -107,7 +121,7 @@ class PG():
                      #   break
                     Mu_gradient, Sigma_gradient = self.update_gradient(theta, R, Mu_w, Sigma_w)
 
-                    if cnt == 0:
+                    if self.gradient_method == 'NAG':
                         # use Nesterov accelerated gradient
                         Mu_gradient = gamma*Mu_grad_old + alpha*(Mu_gradient - gamma*Mu_grad_old)
                         Sigma_gradient = gamma*Sigma_grad_old + alpha*(Sigma_gradient - gamma*Sigma_grad_old)/15
@@ -134,23 +148,21 @@ class PG():
             R_mean = np.mean(R_mean_storage, axis=1)
             R_std = np.sqrt(np.diag(np.cov(R_mean_storage)))
             print("\n")
-            if cnt == 0:
+            if self.gradient_method == 'NAG':
                 plt.errorbar(np.arange(1, maxIter + 1), R_mean, 1.96 * R_std, marker='^', color='red',
                              label='NAG')
                 plt.legend(loc='best')
 
-            elif cnt == 1:
+            elif self.gradient_method == 'GD':
                 plt.errorbar(np.arange(1, maxIter + 1), R_mean, 1.96 * R_std, marker='^', color='green',
                              label='alpha = 0.1, no baseline')
                 plt.legend(loc='best')
 
-            cnt += 1
             plt.yscale("symlog")
             # Save animation
             if self.saveFigures:
                 plt.savefig('MeanVarianceGradalpha01meanwbaseline.pdf')
             #env.animate_fig ( np.random.multivariate_normal(Mu_w,Sigma_w) )
-            #plt.savefig('EM-Ex2.pdf')
         
 
 if __name__ == '__main__':
